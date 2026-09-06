@@ -6,9 +6,9 @@
   <title>Multi-Election Voting Simulator</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background: #f0f2f5; padding: 16px; max-width: 700px; margin: 0 auto; line-height: 1.5; }
-    h1, h2 { text-align: center; margin-bottom: 16px; }
-    .progress { text-align: center; color: #555; margin-bottom: 20px; font-size: 15px; }
+    body { background: #f0f2f5; padding: 16px; max-width: 700px; margin: 0 auto; }
+    h1 { text-align: center; margin-bottom: 8px; font-size: 24px; }
+    .progress { text-align: center; color: #666; margin-bottom: 20px; font-size: 15px; }
     
     .candidate {
       background: white;
@@ -17,7 +17,6 @@
       margin-bottom: 16px;
       box-shadow: 0 3px 12px rgba(0,0,0,0.1);
       cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
       border-left: 10px solid #ccc;
       display: flex;
       gap: 14px;
@@ -55,33 +54,28 @@
     .party-count {
       display: flex;
       justify-content: space-between;
-      padding: 10px 0;
+      padding: 12px 0;
       border-bottom: 1px solid #eee;
       font-size: 16px;
     }
-    .party-count:last-child { border-bottom: none; }
-    
     button {
       background: #0070f3;
       color: white;
       border: none;
-      padding: 14px 24px;
+      padding: 14px;
       border-radius: 10px;
       font-size: 16px;
       font-weight: 700;
       width: 100%;
-      margin-top: 20px;
-      cursor: pointer;
+      margin-top: 16px;
     }
     .restart { background: #ff3b30; }
   </style>
 </head>
 <body>
-
   <div id="app"></div>
 
   <script>
-    // ========== EDIT THIS SECTION ==========
     const elections = [
       {
         title: "President of the United States",
@@ -174,101 +168,77 @@
         ]
       }
     ];
-    // ========== END OF EDIT SECTION ==========
 
-    let currentElection = 0;
-    let votes = [];          // stores the candidate objects you chose
-    let partyCount = {};     // tallies parties
+    let current = 0;
+    let votes = [];
 
     function render() {
-      const app = document.getElementById('app');
+      const app = document.getElementById("app");
 
-      // FINAL RESULTS SCREEN
-      if (currentElection >= elections.length) {
-        // Count parties
-        partyCount = {};
-        votes.forEach(v => {
+      // Final Results
+      if (current >= elections.length) {
+        const partyCount = {};
+        votes.forEach(function(v) {
           partyCount[v.party] = (partyCount[v.party] || 0) + 1;
         });
 
-        let html = `
-          <h1>Your Final Ballot</h1>
-          <div class="results-card">
-            <h2>Candidates You Voted For</h2>
-        `;
+        let html = "<h1>Your Final Ballot</h1>";
+        html += '<div class="results-card"><h2 style="margin-bottom:12px">Candidates You Voted For</h2>';
 
-        votes.forEach((v, i) => {
-          html += `
-            <div style="margin: 12px 0; padding-bottom: 12px; border-bottom: 1px solid #eee;">
-              <strong>${elections[i].title}</strong><br>
-              <span style="color:\( {v.color}; font-weight:700;"> \){v.name}</span> (${v.party})
-            </div>
-          `;
+        votes.forEach(function(v, i) {
+          html += '<div style="margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #eee">';
+          html += "<strong>" + elections[i].title + "</strong><br>";
+          html += '<span style="color:' + v.color + ';font-weight:700">' + v.name + "</span> (" + v.party + ")";
+          html += "</div>";
         });
 
-        html += `</div>
-          <div class="results-card">
-            <h2>Party Totals</h2>
-        `;
+        html += "</div>";
+        html += '<div class="results-card"><h2 style="margin-bottom:12px">Party Totals</h2>';
 
         for (let party in partyCount) {
-          html += `
-            <div class="party-count">
-              <span>${party}</span>
-              <strong>\( {partyCount[party]} time \){partyCount[party] > 1 ? 's' : ''}</strong>
-            </div>
-          `;
+          html += '<div class="party-count">';
+          html += "<span>" + party + "</span>";
+          html += "<strong>" + partyCount[party] + (partyCount[party] > 1 ? " times" : " time") + "</strong>";
+          html += "</div>";
         }
 
-        html += `
-          </div>
-          <button class="restart" onclick="restart()">Start Over</button>
-        `;
-
+        html += "</div>";
+        html += '<button class="restart" onclick="restart()">Start Over</button>';
         app.innerHTML = html;
         return;
       }
 
-      // VOTING SCREEN
-      const election = elections[currentElection];
+      // Voting Screen
+      const election = elections[current];
+      let html = "<h1>" + election.title + "</h1>";
+      html += '<div class="progress">Election ' + (current + 1) + ' of ' + elections.length + "</div>";
 
-      let html = `
-        <h1>${election.title}</h1>
-        <div class="progress">Election ${currentElection + 1} of ${elections.length}</div>
-      `;
-
-      election.candidates.forEach((c, index) => {
-        html += `
-          <div class="candidate" style="border-left-color: \( {c.color}" onclick="vote( \){index})">
-            <img src="\( {c.image}" alt=" \){c.name}">
-            <div class="candidate-info">
-              <div class="candidate-name">${c.name}</div>
-              <div class="party-tag" style="background:\( {c.color}"> \){c.party}</div>
-              <div class="bio">${c.bio}</div>
-            </div>
-          </div>
-        `;
+      election.candidates.forEach(function(c, index) {
+        html += '<div class="candidate" style="border-left-color:' + c.color + '" onclick="vote(' + index + ')">';
+        html += '<img src="' + c.image + '" alt="' + c.name + '">';
+        html += '<div class="candidate-info">';
+        html += '<div class="candidate-name">' + c.name + "</div>";
+        html += '<div class="party-tag" style="background:' + c.color + '">' + c.party + "</div>";
+        html += '<div class="bio">' + c.bio + "</div>";
+        html += "</div></div>";
       });
 
       app.innerHTML = html;
     }
 
     function vote(index) {
-      const chosen = elections[currentElection].candidates[index];
-      votes.push(chosen);
-      currentElection++;
+      votes.push(elections[current].candidates[index]);
+      current++;
       render();
       window.scrollTo(0, 0);
     }
 
     function restart() {
-      currentElection = 0;
+      current = 0;
       votes = [];
-      partyCount = {};
       render();
     }
 
-    // Start the simulator
     render();
   </script>
 </body>
